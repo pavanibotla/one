@@ -1,739 +1,195 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
-public class TechBuy {
+// Base Product class
+abstract class Product {
+    private String id;
+    private String name;
+    private double price;
 
-    // =========================
-    // PRODUCT CLASS
-    // =========================
-    static class Product {
+    public Product(String id, String name, double price) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+    }
 
-        private int id;
-        private String name;
-        private String category;
-        private double price;
-        private double rating;
-        private int stock;
+    public String getId() { return id; }
+    public String getName() { return name; }
+    public double getPrice() { return price; }
 
-        public Product(int id, String name, String category,
-                       double price, double rating, int stock) {
+    public abstract String getCategory();
 
-            this.id = id;
-            this.name = name;
-            this.category = category;
-            this.price = price;
-            this.rating = rating;
-            this.stock = stock;
-        }
+    @Override
+    public String toString() {
+        return String.format("[%s] %s (%s) - $%.2f", id, name, getCategory(), price);
+    }
+}
 
-        public int getId() {
-            return id;
-        }
+// Electronics subclass
+class Electronic extends Product {
+    private String brand;
+    private int warrantyMonths;
 
-        public String getName() {
-            return name;
-        }
+    public Electronic(String id, String name, double price, String brand, int warrantyMonths) {
+        super(id, name, price);
+        this.brand = brand;
+        this.warrantyMonths = warrantyMonths;
+    }
 
-        public String getCategory() {
-            return category;
-        }
+    @Override
+    public String getCategory() {
+        return "Electronics";
+    }
+}
 
-        public double getPrice() {
-            return price;
-        }
+// Appliance subclass
+class Appliance extends Product {
+    private String energyRating;
 
-        public double getRating() {
-            return rating;
-        }
+    public Appliance(String id, String name, double price, String energyRating) {
+        super(id, name, price);
+        this.energyRating = energyRating;
+    }
 
-        public int getStock() {
-            return stock;
-        }
+    @Override
+    public String getCategory() {
+        return "Appliances";
+    }
+}
 
-        public void reduceStock() {
-            if (stock > 0) {
-                stock--;
-            }
-        }
+// Inventory system tracking stock levels
+class Inventory {
+    private Map<String, Product> products = new HashMap<>();
+    private Map<String, Integer> stock = new HashMap<>();
 
-        public void increaseStock() {
-            stock++;
-        }
+    public void addProduct(Product product, int quantity) {
+        products.put(product.getId(), product);
+        stock.put(product.getId(), stock.getOrDefault(product.getId(), 0) + quantity);
+    }
 
-        public void displayProduct() {
+    public Product getProduct(String id) {
+        return products.get(id);
+    }
 
-            System.out.println(
-                    "ID       : " + id +
-                    "\nProduct  : " + name +
-                    "\nCategory : " + category +
-                    "\nPrice    : ₹" + price +
-                    "\nRating   : ⭐ " + rating +
-                    "\nStock    : " + stock
-            );
+    public boolean isAvailable(String id, int quantity) {
+        return stock.getOrDefault(id, 0) >= quantity;
+    }
 
-            System.out.println("--------------------------------");
+    public void reduceStock(String id, int quantity) {
+        if (isAvailable(id, quantity)) {
+            stock.put(id, stock.get(id) - quantity);
         }
     }
 
-
-    // =========================
-    // CART ITEM CLASS
-    // =========================
-    static class CartItem {
-
-        private Product product;
-        private int quantity;
-
-        public CartItem(Product product) {
-
-            this.product = product;
-            this.quantity = 1;
-        }
-
-        public Product getProduct() {
-            return product;
-        }
-
-        public int getQuantity() {
-            return quantity;
-        }
-
-        public void increaseQuantity() {
-            quantity++;
-        }
-
-        public void decreaseQuantity() {
-            if (quantity > 1) {
-                quantity--;
-            }
-        }
-
-        public double getTotal() {
-            return product.getPrice() * quantity;
+    public void displayCatalog() {
+        System.out.println("=== Best Buy Product Catalog ===");
+        for (Product p : products.values()) {
+            int qty = stock.get(p.getId());
+            System.out.printf("%s | In Stock: %d\n", p, qty);
         }
     }
-
-
-    // =========================
-    // TECHBUY STORE
-    // =========================
-    static class Store {
-
-        private List<Product> products;
-        private List<CartItem> cart;
-
-        public Store() {
-
-            products = new ArrayList<>();
-            cart = new ArrayList<>();
-
-            loadProducts();
-        }
-
-
-        // =========================
-        // PRODUCTS
-        // =========================
-        private void loadProducts() {
-
-            products.add(
-                    new Product(
-                            101,
-                            "iPhone 15",
-                            "Cell Phones",
-                            69999,
-                            4.8,
-                            20
-                    )
-            );
-
-            products.add(
-                    new Product(
-                            102,
-                            "Samsung Galaxy S24",
-                            "Cell Phones",
-                            74999,
-                            4.7,
-                            15
-                    )
-            );
-
-            products.add(
-                    new Product(
-                            103,
-                            "MacBook Air M3",
-                            "Computers & Tablets",
-                            99999,
-                            4.9,
-                            10
-                    )
-            );
-
-            products.add(
-                    new Product(
-                            104,
-                            "HP Pavilion Laptop",
-                            "Computers & Tablets",
-                            64999,
-                            4.5,
-                            12
-                    )
-            );
-
-            products.add(
-                    new Product(
-                            105,
-                            "Sony 55 Inch 4K TV",
-                            "TV & Home Theater",
-                            64999,
-                            4.6,
-                            8
-                    )
-            );
-
-            products.add(
-                    new Product(
-                            106,
-                            "Samsung 65 Inch Smart TV",
-                            "TV & Home Theater",
-                            89999,
-                            4.7,
-                            6
-                    )
-            );
-
-            products.add(
-                    new Product(
-                            107,
-                            "Sony WH-1000XM5",
-                            "Headphones & Audio",
-                            29999,
-                            4.8,
-                            25
-                    )
-            );
-
-            products.add(
-                    new Product(
-                            108,
-                            "Apple AirPods Pro",
-                            "Headphones & Audio",
-                            24999,
-                            4.8,
-                            30
-                    )
-            );
-
-            products.add(
-                    new Product(
-                            109,
-                            "PlayStation 5",
-                            "Gaming",
-                            54999,
-                            4.9,
-                            12
-                    )
-            );
-
-            products.add(
-                    new Product(
-                            110,
-                            "Xbox Series X",
-                            "Gaming",
-                            49999,
-                            4.8,
-                            10
-                    )
-            );
-
-            products.add(
-                    new Product(
-                            111,
-                            "Canon EOS Camera",
-                            "Cameras",
-                            79999,
-                            4.6,
-                            7
-                    )
-            );
-
-            products.add(
-                    new Product(
-                            112,
-                            "Apple Watch Series 9",
-                            "Smart Home",
-                            42999,
-                            4.7,
-                            18
-                    )
-            );
-        }
-
-
-        // =========================
-        // DISPLAY ALL PRODUCTS
-        // =========================
-        public void showProducts() {
-
-            System.out.println("\n=================================");
-            System.out.println("       TECHBUY PRODUCTS");
-            System.out.println("=================================");
-
-            for (Product product : products) {
-
-                product.displayProduct();
-            }
-        }
-
-
-        // =========================
-        // FIND PRODUCT
-        // =========================
-        public Product findProduct(int id) {
-
-            for (Product product : products) {
-
-                if (product.getId() == id) {
-                    return product;
-                }
-            }
-
-            return null;
-        }
-
-
-        // =========================
-        // SEARCH PRODUCT
-        // =========================
-        public void searchProduct(String keyword) {
-
-            boolean found = false;
-
-            System.out.println("\n=================================");
-            System.out.println("        SEARCH RESULTS");
-            System.out.println("=================================");
-
-            for (Product product : products) {
-
-                if (product.getName()
-                        .toLowerCase()
-                        .contains(keyword.toLowerCase())
-                        ||
-                    product.getCategory()
-                        .toLowerCase()
-                        .contains(keyword.toLowerCase())) {
-
-                    product.displayProduct();
-
-                    found = true;
-                }
-            }
-
-            if (!found) {
-
-                System.out.println(
-                        "❌ No products found for: " + keyword
-                );
-            }
-        }
-
-
-        // =========================
-        // SHOW CATEGORIES
-        // =========================
-        public void showCategories() {
-
-            System.out.println("\n=================================");
-            System.out.println("       TECHBUY CATEGORIES");
-            System.out.println("=================================");
-
-            System.out.println("1. Cell Phones");
-            System.out.println("2. Computers & Tablets");
-            System.out.println("3. TV & Home Theater");
-            System.out.println("4. Gaming");
-            System.out.println("5. Headphones & Audio");
-            System.out.println("6. Cameras");
-            System.out.println("7. Smart Home");
-        }
-
-
-        // =========================
-        // ADD TO CART
-        // =========================
-        public void addToCart(int productId) {
-
-            Product product = findProduct(productId);
-
-            if (product == null) {
-
-                System.out.println(
-                        "❌ Product not found."
-                );
-
-                return;
-            }
-
-            if (product.getStock() <= 0) {
-
-                System.out.println(
-                        "❌ Product is out of stock."
-                );
-
-                return;
-            }
-
-
-            // Check whether product already exists
-            // in cart
-            for (CartItem item : cart) {
-
-                if (item.getProduct().getId() == productId) {
-
-                    item.increaseQuantity();
-
-                    product.reduceStock();
-
-                    System.out.println(
-                            "✅ Quantity increased: "
-                            + product.getName()
-                    );
-
-                    return;
-                }
-            }
-
-
-            // New product
-            cart.add(new CartItem(product));
-
-            product.reduceStock();
-
-            System.out.println(
-                    "✅ Added to cart: "
-                    + product.getName()
-            );
-        }
-
-
-        // =========================
-        // REMOVE FROM CART
-        // =========================
-        public void removeFromCart(int productId) {
-
-            for (CartItem item : cart) {
-
-                if (item.getProduct().getId() == productId) {
-
-                    if (item.getQuantity() > 1) {
-
-                        item.decreaseQuantity();
-
-                        item.getProduct().increaseStock();
-
-                        System.out.println(
-                                "✅ Quantity reduced."
-                        );
-
-                    } else {
-
-                        item.getProduct().increaseStock();
-
-                        cart.remove(item);
-
-                        System.out.println(
-                                "✅ Product removed from cart."
-                        );
-                    }
-
-                    return;
-                }
-            }
-
-            System.out.println(
-                    "❌ Product is not in cart."
-            );
-        }
-
-
-        // =========================
-        // SHOW CART
-        // =========================
-        public void showCart() {
-
-            if (cart.isEmpty()) {
-
-                System.out.println(
-                        "\n🛒 Your cart is empty."
-                );
-
-                return;
-            }
-
-
-            System.out.println("\n=================================");
-            System.out.println("          YOUR CART");
-            System.out.println("=================================");
-
-            double total = 0;
-
-            for (CartItem item : cart) {
-
-                Product product = item.getProduct();
-
-                double itemTotal = item.getTotal();
-
-                System.out.println(
-                        product.getName()
-                        + " | Quantity: "
-                        + item.getQuantity()
-                        + " | ₹"
-                        + itemTotal
-                );
-
-                total += itemTotal;
-            }
-
-            System.out.println("---------------------------------");
-
-            System.out.println(
-                    "TOTAL: ₹" + total
-            );
-
-            System.out.println("=================================");
-        }
-
-
-        // =========================
-        // CART TOTAL
-        // =========================
-        public double getCartTotal() {
-
-            double total = 0;
-
-            for (CartItem item : cart) {
-
-                total += item.getTotal();
-            }
-
-            return total;
-        }
-
-
-        // =========================
-        // CHECKOUT
-        // =========================
-        public void checkout() {
-
-            if (cart.isEmpty()) {
-
-                System.out.println(
-                        "❌ Cart is empty."
-                );
-
-                return;
-            }
-
-            double total = getCartTotal();
-
-            System.out.println("\n=================================");
-            System.out.println("           CHECKOUT");
-            System.out.println("=================================");
-
-            showCart();
-
-            System.out.println(
-                    "\nPayment Options:"
-            );
-
-            System.out.println("1. UPI");
-            System.out.println("2. Credit/Debit Card");
-            System.out.println("3. Cash on Delivery");
-
-            Scanner scanner = new Scanner(System.in);
-
-            System.out.print(
-                    "Choose payment method: "
-            );
-
-            int payment =
-                    scanner.nextInt();
-
-            switch (payment) {
-
-                case 1:
-                    System.out.println(
-                            "Payment selected: UPI"
-                    );
-                    break;
-
-                case 2:
-                    System.out.println(
-                            "Payment selected: Card"
-                    );
-                    break;
-
-                case 3:
-                    System.out.println(
-                            "Payment selected: Cash on Delivery"
-                    );
-                    break;
-
-                default:
-                    System.out.println(
-                            "Invalid payment option."
-                    );
-                    return;
-            }
-
-            System.out.println(
-                    "\n✅ Order placed successfully!"
-            );
-
-            System.out.println(
-                    "Order Amount: ₹" + total
-            );
-
-            System.out.println(
-                    "Thank you for shopping with TechBuy!"
-            );
-
-            cart.clear();
-        }
+}
+
+// Shopping Cart item wrapper
+class CartItem {
+    private Product product;
+    private int quantity;
+
+    public CartItem(Product product, int quantity) {
+        this.product = product;
+        this.quantity = quantity;
     }
 
+    public Product getProduct() { return product; }
+    public int getQuantity() { return quantity; }
+    public double getTotalPrice() { return product.getPrice() * quantity; }
+}
 
-    // =========================
-    // MAIN METHOD
-    // =========================
+// User's Shopping Cart
+class ShoppingCart {
+    private List<CartItem> items = new ArrayList<>();
+
+    public void addItem(Product product, int quantity) {
+        items.add(new CartItem(product, quantity));
+        System.out.printf("Added %dx %s to cart.\n", quantity, product.getName());
+    }
+
+    public List<CartItem> getItems() { return items; }
+
+    public double calculateSubtotal() {
+        double subtotal = 0;
+        for (CartItem item : items) {
+            subtotal += item.getTotalPrice();
+        }
+        return subtotal;
+    }
+}
+
+// Order processing engine
+class OrderEngine {
+    private static final double TAX_RATE = 0.08; // 8% sales tax
+
+    public static void checkout(ShoppingCart cart, Inventory inventory) {
+        System.out.println("\n=== Processing Checkout ===");
+        
+        // Stock verification
+        for (CartItem item : cart.getItems()) {
+            if (!inventory.isAvailable(item.getProduct().getId(), item.getQuantity())) {
+                System.out.printf("Error: Item %s is out of stock in requested quantity.\n", item.getProduct().getName());
+                return;
+            }
+        }
+
+        // Deduct inventory
+        for (CartItem item : cart.getItems()) {
+            inventory.reduceStock(item.getProduct().getId(), item.getQuantity());
+        }
+
+        // Receipt generation
+        double subtotal = cart.calculateSubtotal();
+        double tax = subtotal * TAX_RATE;
+        double total = subtotal + tax;
+
+        System.out.println("\n---------------- ORDER RECEIPT ----------------");
+        for (CartItem item : cart.getItems()) {
+            System.out.printf("%-30s x%d  $%.2f\n", item.getProduct().getName(), item.getQuantity(), item.getTotalPrice());
+        }
+        System.out.println("----------------------------------------------");
+        System.out.printf("Subtotal: $%.2f\n", subtotal);
+        System.out.printf("Tax (8%%): $%.2f\n", tax);
+        System.out.printf("Total:    $%.2f\n", total);
+        System.out.println("----------------------------------------------");
+        System.out.println("Order placed successfully! Thank you for shopping with us.");
+    }
+}
+
+// Application Entry Point
+public class Main {
     public static void main(String[] args) {
+        // Setup inventory
+        Inventory inventory = new Inventory();
+        
+        Product tv = new Electronic("TV-4K-65", "LG 65\" OLED 4K TV", 1499.99, "LG", 24);
+        Product laptop = new Electronic("LAP-MBP-16", "MacBook Pro 16\"", 2499.99, "Apple", 12);
+        Product fridge = new Appliance("APP-REF-01", "Samsung French Door Refrigerator", 1999.99, "EnergyStar A++");
 
-        Scanner scanner = new Scanner(System.in);
+        inventory.addProduct(tv, 5);
+        inventory.addProduct(laptop, 10);
+        inventory.addProduct(fridge, 2);
 
-        Store store = new Store();
+        // Display catalog
+        inventory.displayCatalog();
 
-        boolean running = true;
+        // Customer behavior simulation
+        System.out.println("\n--- Customer Action ---");
+        ShoppingCart userCart = new ShoppingCart();
+        userCart.addItem(tv, 1);
+        userCart.addItem(laptop, 2);
 
+        // Process order
+        OrderEngine.checkout(userCart, inventory);
 
-        while (running) {
-
-            System.out.println("\n");
-            System.out.println("======================================");
-            System.out.println("              TECHBUY");
-            System.out.println("       Electronics Shopping");
-            System.out.println("======================================");
-
-            System.out.println("1. View All Products");
-            System.out.println("2. View Categories");
-            System.out.println("3. Search Product");
-            System.out.println("4. Add Product to Cart");
-            System.out.println("5. Remove Product from Cart");
-            System.out.println("6. View Cart");
-            System.out.println("7. Checkout");
-            System.out.println("8. Exit");
-
-            System.out.println("--------------------------------------");
-
-            System.out.print(
-                    "Enter your choice: "
-            );
-
-            int choice = scanner.nextInt();
-
-
-            switch (choice) {
-
-                case 1:
-
-                    store.showProducts();
-
-                    break;
-
-
-                case 2:
-
-                    store.showCategories();
-
-                    break;
-
-
-                case 3:
-
-                    scanner.nextLine();
-
-                    System.out.print(
-                            "Enter product name/category: "
-                    );
-
-                    String keyword =
-                            scanner.nextLine();
-
-                    store.searchProduct(keyword);
-
-                    break;
-
-
-                case 4:
-
-                    System.out.print(
-                            "Enter Product ID: "
-                    );
-
-                    int addId =
-                            scanner.nextInt();
-
-                    store.addToCart(addId);
-
-                    break;
-
-
-                case 5:
-
-                    System.out.print(
-                            "Enter Product ID to remove: "
-                    );
-
-                    int removeId =
-                            scanner.nextInt();
-
-                    store.removeFromCart(removeId);
-
-                    break;
-
-
-                case 6:
-
-                    store.showCart();
-
-                    break;
-
-
-                case 7:
-
-                    store.checkout();
-
-                    break;
-
-
-                case 8:
-
-                    running = false;
-
-                    System.out.println(
-                            "\nThank you for visiting TechBuy!"
-                    );
-
-                    break;
-
-
-                default:
-
-                    System.out.println(
-                            "❌ Invalid choice. Please try again."
-                    );
-            }
-        }
-
-        scanner.close();
+        // Show remaining inventory stock
+        System.out.println();
+        inventory.displayCatalog();
     }
 }
